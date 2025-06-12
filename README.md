@@ -23,7 +23,7 @@ steps:
   - uses: actions/checkout@v4
   - uses: goplus/setup-xgo@v1
     with:
-      go-version: '1.21.0'
+      go-version: '1.24.0'
       xgo-version: '1.5.0' # The XGo version to download (if necessary) and use.
   - run: xgo version
 ```

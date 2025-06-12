@@ -58,7 +58,7 @@ jobs:
         id: test-action
         uses: ./
         with:
-          go-version: '1.21.0'
+          go-version: '1.24.0'
           xgo-version: '1.5.0'
 
       - name: Print Output
@@ -100,15 +100,13 @@ jobs:
 
       - name: Test version verified
         env:
-          EXPECTED_VERIFIED: ${{ matrix.xgo-version-verified }}
-          ACTUAL_VERIFIED: ${{ steps.test-xgo-version.outputs.xgo-version-verified }}
+          VERIFIED: ${{ matrix.xgo-version-verified }}
           XGO_VERSION: ${{ matrix.xgo-version }}
         run: |
           echo "xgo-version: $XGO_VERSION"
-          echo "expected xgo-version-verified: $EXPECTED_VERIFIED"
-          echo "actual xgo-version-verified: $ACTUAL_VERIFIED"
-          if [[ "$EXPECTED_VERIFIED" != "$ACTUAL_VERIFIED" ]]; then
+          echo "xgo-version-verified: $VERIFIED"
+          if [[ "$VERIFIED" != "$VERIFIED" ]]; then
             echo "xgo-version-verified does not match expected value"
-            echo "expected: $EXPECTED_VERIFIED, got: $ACTUAL_VERIFIED"
+            echo "expected: $VERIFIED, got: $VERIFIED"
             exit 1
           fi
