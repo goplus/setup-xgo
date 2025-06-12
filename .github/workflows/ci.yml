@@ -1,0 +1,114 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - 'releases/*'
+
+jobs:
+  test-typescript:
+    name: TypeScript Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        id: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+
+      - name: Install Dependencies
+        id: npm-ci
+        run: npm ci
+
+      - name: Check Format
+        id: npm-format-check
+        run: npm run format:check
+
+      - name: Lint
+        id: npm-lint
+        run: npm run lint
+
+      - name: Test
+        id: npm-ci-test
+        run: npm run ci-test
+
+  test-action:
+    name: GitHub Actions Test
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Test Local Action
+        id: test-action
+        uses: ./
+        with:
+          go-version: '1.21.0'
+          xgo-version: '1.5.0'
+
+      - name: Print Output
+        id: output
+        run: echo "${{ steps.test-action.outputs.xgo-version }}"
+
+  test-versions:
+    name: XGo Versions Test
+
+    strategy:
+      matrix:
+        xgo-version: ['1.5.0', '1.5', '1', '', 'latest', 'main']
+        include:
+          - xgo-version: '1.5.0'
+            xgo-version-verified: 'true'
+          - xgo-version: '1.5'
+            xgo-version-verified: 'true'
+          - xgo-version: '1'
+            xgo-version-verified: 'true'
+          - xgo-version: ''
+            xgo-version-verified: 'true'
+          - xgo-version: 'latest'
+            xgo-version-verified: 'true'
+          - xgo-version: 'main'
+            xgo-version-verified: 'false'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Test XGo Version
+        id: test-xgo-version
+        uses: ./
+        with:
+          xgo-version: ${{ matrix.xgo-version }}
+
+      - name: Test version verified
+        env:
+          EXPECTED_VERIFIED: ${{ matrix.xgo-version-verified }}
+          ACTUAL_VERIFIED: ${{ steps.test-xgo-version.outputs.xgo-version-verified }}
+          XGO_VERSION: ${{ matrix.xgo-version }}
+        run: |
+          echo "xgo-version: $XGO_VERSION"
+          echo "expected xgo-version-verified: $EXPECTED_VERIFIED"
+          echo "actual xgo-version-verified: $ACTUAL_VERIFIED"
+          if [[ "$EXPECTED_VERIFIED" != "$ACTUAL_VERIFIED" ]]; then
+            echo "xgo-version-verified does not match expected value"
+            echo "expected: $EXPECTED_VERIFIED, got: $ACTUAL_VERIFIED"
+            exit 1
+          fi
