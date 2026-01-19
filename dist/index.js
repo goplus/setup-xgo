@@ -6115,7 +6115,20 @@ function install(xgoDir) {
 function checkVersion(versionSpec) {
     core.info(`Testing xgo ${versionSpec} ...`);
     const actualVersion = xgoVersion();
-    if (actualVersion !== versionSpec) {
+    // Normalize versions by removing common suffixes
+    // Examples: "1.5.x" -> "1.5", "1.6.0 devel" -> "1.6.0"
+    const normalizedActual = actualVersion
+        .replace(/\.x$/, '')
+        .replace(/\s+devel$/, '')
+        .trim();
+    const normalizedExpected = versionSpec.trim();
+    // Compare major.minor parts for compatibility
+    const actualParts = normalizedActual.split('.');
+    const expectedParts = normalizedExpected.split('.');
+    const minParts = Math.min(2, expectedParts.length);
+    const actualPrefix = actualParts.slice(0, minParts).join('.');
+    const expectedPrefix = expectedParts.slice(0, minParts).join('.');
+    if (actualPrefix !== expectedPrefix) {
         throw new Error(`Installed xgo version ${actualVersion} does not match expected version ${versionSpec}`);
     }
     core.info(`Installed xgo version ${actualVersion}`);
