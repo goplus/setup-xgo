@@ -6121,7 +6121,10 @@ function checkVersion(versionSpec) {
         .replace(/\.x$/, '')
         .replace(/\s+devel$/, '')
         .trim();
-    const normalizedExpected = versionSpec.trim();
+    const normalizedExpected = versionSpec
+        .replace(/\.x$/, '')
+        .replace(/\s+devel$/, '')
+        .trim();
     // Compare major.minor parts for compatibility
     const actualParts = normalizedActual.split('.');
     const expectedParts = normalizedExpected.split('.');
